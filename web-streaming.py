@@ -14,10 +14,9 @@ PAGE = """\
 <title>picamera MJPEG streaming demo</title>
 </head>
 <body>
-<h1>PiCamera MJPEG Streaming Demo</h1>
-
-<a href="picture">Take picture</a><br>
-<img src="stream.mjpg" width="1296" height="972" />
+<img src="stream.mjpg" width="1296" height="972" /><br>
+<input type=button onClick="location.href='picture'"
+ value='Capture image'><br>
 </body>
 </html>
 """
@@ -28,9 +27,9 @@ PIC_PAGE = """\
 <title>picamera MJPEG streaming demo</title>
 </head>
 <body>
-<h1>Microscope streaming</h1>
-<a href="picture">Take picture</a><br>
 <img src="stream.mjpg" width="1296" height="972" /><br>
+<input type=button onClick="location.href='picture'"
+ value='Capture image'><br>
 <img src="img.jpg" width="4056" height="3040" />
 </body>
 </html>
