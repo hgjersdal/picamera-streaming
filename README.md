@@ -8,3 +8,11 @@ For python module keyboard to work without being root:
 Add user to groups tty and input.
 
 Remove calls to ensure_root in `_nixkeyboard.py`
+
+# web-streaming.py
+
+Run python code on pi, go to <pi-ip-address>:8000 in a web browser
+
+Stores all images to /home/pi/shared/img<num>.jpg, where <num> starts at 0. Works well with smb share. Images are stored at maximum resolution.
+
+
