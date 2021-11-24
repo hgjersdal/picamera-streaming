@@ -1,0 +1,11 @@
+[Unit]
+Description=Systemd service for streaming raspberry pi HQ camera images over the web. 
+
+[Service]
+User=pi
+Type=simple
+ExecStart=python3 /home/pi/git/picamera-test/web-streaming.py
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
