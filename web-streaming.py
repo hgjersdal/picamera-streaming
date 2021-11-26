@@ -28,7 +28,7 @@ PIC_PAGE = """\
 </head>
 <body style="background-color:#111111;">
 <a href=index.html>
-<img src="img.jpg" height="4056" width="3040" title="Click to watch stream" />
+<img src="img.jpg" width="4056" height="3040" title="Click to watch stream" />
 </a>
 </body>
 </html>
