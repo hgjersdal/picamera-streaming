@@ -11,12 +11,12 @@ from http import server
 PAGE = """\
 <html>
 <head>
-<title>picamera MJPEG streaming demo</title>
+<title>click for picture</title>
 </head>
-<body>
-<img src="stream.mjpg" width="1296" height="972" /><br>
-<input type=button onClick="location.href='picture'"
- value='Capture image'><br>
+<body style="background-color:#111111;">
+<a href=picture>
+<center><img src="stream.mjpg" height="100%" title="Click to capture image" class=centerImage /></center>
+</a>
 </body>
 </html>
 """
@@ -24,13 +24,12 @@ PAGE = """\
 PIC_PAGE = """\
 <html>
 <head>
-<title>picamera MJPEG streaming demo</title>
+<title>Click for stream</title>
 </head>
-<body>
-<img src="stream.mjpg" width="1296" height="972" /><br>
-<input type=button onClick="location.href='picture'"
- value='Capture image'><br>
-<img src="img.jpg" width="4056" height="3040" />
+<body style="background-color:#111111;">
+<a href=index.html>
+<img src="img.jpg" height="4056" width="3040" title="Click to watch stream" />
+</a>
 </body>
 </html>
 """
