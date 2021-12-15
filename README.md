@@ -15,11 +15,14 @@ Remove calls to ensure_root in `_nixkeyboard.py`
 
 Run python code on pi, go to <pi-ip-address>:8000 in a web browser. For example fyspi-elab-microscope-nikon.local:8000.
 
-Clicking `Capture image` stores an image at maximum resolution. Images are stored to /home/pi/shared/img<num>.jpg, where <num> starts at 0. 
+Clicking on the stream stores and shows an image at maximum resolution. Clicking on the image takes you back to the stream. Images are stored to /home/pi/shared/img?.jpg, where ? starts at 0. 
 
 The camera will stop recording after 10 minutes. Refreshing the page will restart it.
 
 # streaming-microscope.service
+
+fyspi-elab-microscope-nikon and -leica are configured to autostart web streaming and samba sharing of stored images. The configuration is as follows.
+
 
 To autostart web streaming on start, vopy file to `/etc/systemd/system`.
 

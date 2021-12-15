@@ -72,7 +72,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         elif self.path == '/index.html':
             mutex.acquire()
             request_power = True
-            print("Sending request")
             mutex.release()
             while(request_power):
                 pass
