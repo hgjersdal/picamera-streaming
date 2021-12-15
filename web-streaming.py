@@ -38,9 +38,8 @@ take_picture = False  # Set to true to take a picture from camera thread
 keep_looping = True  # Set to false to kill camera thread
 mutex = threading.Lock()
 counter = -1  # Count the number of stored images
-cam_running = False
-request_power = False
-timeout = 600
+request_power = False  # Does the camera need power?
+timeout = 600  # Time in seconds until camera turns off after last request for power
 
 
 class StreamingOutput(object):
@@ -66,7 +65,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         global take_picture
         global counter
         global request_power
-        global cam_running
         if self.path == '/':
             self.send_response(301)
             self.send_header('Location', '/index.html')
@@ -85,22 +83,17 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
         elif self.path == '/picture':
-            if(cam_running):
-                mutex.acquire()
-                take_picture = True
-                mutex.release()
-                while(take_picture):
-                    pass
-                content = PIC_PAGE.encode('utf-8')
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/html')
-                self.send_header('Content-Length', len(content))
-                self.end_headers()
-                self.wfile.write(content)
-            else:
-                self.send_response(301)
-                self.send_header('Location', '/index.html')
-                self.end_headers()
+            mutex.acquire()
+            take_picture = True
+            mutex.release()
+            while(take_picture):
+                pass
+            content = PIC_PAGE.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
         elif self.path == '/img.jpg':
             self.send_response(200)
             self.send_header('Content-type', 'image/jpeg')
@@ -145,9 +138,9 @@ def check_input_thread(camera, output):
     """
     global take_picture
     global counter
-    global cam_running
     global request_power
     global timeout
+    cam_running = False
     t0 = 0
     while(keep_looping):
         time.sleep(0.01)
@@ -155,7 +148,6 @@ def check_input_thread(camera, output):
         if(request_power and not cam_running):
             t0 = time.time()
             if(not cam_running):
-                print("start_recording")
                 camera.start_recording(output, format='mjpeg')
                 cam_running = True
             request_power = False
@@ -173,11 +165,12 @@ def check_input_thread(camera, output):
             take_picture = False
             camera.start_recording(output, format='mjpeg')
         mutex.release()
+    if cam_running:
+        camera.stop_recording()
 
 
 with picamera.PiCamera(resolution='1296x972', framerate=24) as camera:
     output = StreamingOutput()
-    # camera.start_recording(output, format='mjpeg')
     camera.rotation = 90
     threading.Thread(target=check_input_thread, args=(camera, output), name='check_input', daemon=True).start()
     try:
@@ -189,4 +182,3 @@ with picamera.PiCamera(resolution='1296x972', framerate=24) as camera:
     finally:
         print("going down!")
         keep_looping = False
-        camera.stop_recording()
