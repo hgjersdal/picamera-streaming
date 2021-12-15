@@ -4,9 +4,9 @@ import logging
 import socketserver
 import threading
 from http import server
+import time
 
 # Based on https://picamera.readthedocs.io/en/release-1.13/recipes2.html#web-streaming
-
 
 PAGE = """\
 <html>
@@ -15,7 +15,7 @@ PAGE = """\
 </head>
 <body style="background-color:#111111;">
 <a href=picture>
-<center><img src="stream.mjpg" height="100%" title="Click to capture image" class=centerImage /></center>
+<img src="stream.mjpg" title="Click to capture image"  height="100%" />
 </a>
 </body>
 </html>
@@ -28,7 +28,7 @@ PIC_PAGE = """\
 </head>
 <body style="background-color:#111111;">
 <a href=index.html>
-<img src="img.jpg" height="4056" width="3040" title="Click to watch stream" />
+<img src="img.jpg" title="Click to watch stream" height=100% />
 </a>
 </body>
 </html>
@@ -38,6 +38,9 @@ take_picture = False  # Set to true to take a picture from camera thread
 keep_looping = True  # Set to false to kill camera thread
 mutex = threading.Lock()
 counter = -1  # Count the number of stored images
+cam_running = False
+request_power = False
+timeout = 600
 
 
 class StreamingOutput(object):
@@ -62,11 +65,19 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
         global take_picture
         global counter
+        global request_power
+        global cam_running
         if self.path == '/':
             self.send_response(301)
             self.send_header('Location', '/index.html')
             self.end_headers()
         elif self.path == '/index.html':
+            mutex.acquire()
+            request_power = True
+            print("Sending request")
+            mutex.release()
+            while(request_power):
+                pass
             content = PAGE.encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
@@ -74,17 +85,22 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
         elif self.path == '/picture':
-            mutex.acquire()
-            take_picture = True
-            mutex.release()
-            while(take_picture):
-                pass
-            content = PIC_PAGE.encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.send_header('Content-Length', len(content))
-            self.end_headers()
-            self.wfile.write(content)
+            if(cam_running):
+                mutex.acquire()
+                take_picture = True
+                mutex.release()
+                while(take_picture):
+                    pass
+                content = PIC_PAGE.encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html')
+                self.send_header('Content-Length', len(content))
+                self.end_headers()
+                self.wfile.write(content)
+            else:
+                self.send_response(301)
+                self.send_header('Location', '/index.html')
+                self.end_headers()
         elif self.path == '/img.jpg':
             self.send_response(200)
             self.send_header('Content-type', 'image/jpeg')
@@ -129,8 +145,23 @@ def check_input_thread(camera, output):
     """
     global take_picture
     global counter
+    global cam_running
+    global request_power
+    global timeout
+    t0 = 0
     while(keep_looping):
+        time.sleep(0.01)
         mutex.acquire()
+        if(request_power and not cam_running):
+            t0 = time.time()
+            if(not cam_running):
+                print("start_recording")
+                camera.start_recording(output, format='mjpeg')
+                cam_running = True
+            request_power = False
+        if(cam_running and time.time() - t0 > timeout):
+            camera.stop_recording()
+            cam_running = False
         if(take_picture):
             print("taking picture!")
             camera.stop_recording()
@@ -146,7 +177,8 @@ def check_input_thread(camera, output):
 
 with picamera.PiCamera(resolution='1296x972', framerate=24) as camera:
     output = StreamingOutput()
-    camera.start_recording(output, format='mjpeg')
+    # camera.start_recording(output, format='mjpeg')
+    camera.rotation = 90
     threading.Thread(target=check_input_thread, args=(camera, output), name='check_input', daemon=True).start()
     try:
         address = ('', 8000)
