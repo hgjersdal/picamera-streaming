@@ -1,4 +1,4 @@
-# picamera-test
+# picamera-streaming
 
 Show images over HDMI.
 
